@@ -20,8 +20,19 @@ pub struct Data {
     pub name: String,
     pub username: String,
     pub password: String,
-    pub created_at: i32,
-    pub updated_at: i32,
+    pub created_at: Option<i32>,
+    pub updated_at: Option<i32>,
+    pub url: Option<String>,
+    pub notes: Option<String>,
+}
+
+#[derive(AsChangeset, Serialize, Deserialize)]
+#[diesel(table_name = crate::schema::data)]
+pub struct UpdateData {
+    pub name: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub updated_at: Option<i32>,
     pub url: Option<String>,
     pub notes: Option<String>,
 }

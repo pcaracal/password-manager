@@ -3,13 +3,13 @@ mod auth;
 #[macro_use]
 extern crate rocket;
 
+use std::convert::Infallible;
 use diesel::prelude::*;
-use rocket::form::{FromForm};
-use rocket::http::Status;
-use rocket::request::{self, FromRequest, Outcome, Request};
 use backend::*;
-use backend::models::{Data, User};
+use backend::models::{Data, UpdateData, User};
 use rocket::serde::json::Json;
+use rocket::http::Status;
+use rocket::request::{self, Outcome, Request, FromRequest};
 
 #[get("/")] // Returns a list of all users
 fn index() -> String {
@@ -76,14 +76,33 @@ fn login(user: Json<User>) -> String {
     }
 }
 
-#[post("/data", data = "<data>")]
-fn create_data(request: Request, data: Json<Data>) -> Status {
-    let user_id = match auth::decode_token(request.headers().get_one("Authorization").unwrap().split_whitespace().collect::<Vec<&str>>()[1]) {
-        -1 => return Status::Unauthorized,
-        _ => auth::decode_token(request.headers().get_one("Authorization").unwrap().split_whitespace().collect::<Vec<&str>>()[1]),
-    };
+struct Token<'r>(&'r str);
 
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Token<'r> {
+    type Error = ();
+
+    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        fn is_valid(token: &str) -> bool {
+            auth::decode_token(token) != -1
+        }
+
+        match req.headers().get_one("Authorization") {
+            None => Outcome::Error((Status::BadRequest, ())),
+            Some(key) if is_valid(key) => Outcome::Success(Token(key)),
+            Some(_) => Outcome::Error((Status::Unauthorized, ())),
+        }
+    }
+}
+
+
+#[post("/data", data = "<data>")]
+fn create_data(token: Token, data: Json<Data>) -> Status {
     let mut connection = establish_connection();
+
+    let user_id = auth::decode_token(token.0);
+    println!("{:?}", user_id);
+    println!("{:?}", token.0);
 
     let new_data = Data {
         id: None,
@@ -91,10 +110,10 @@ fn create_data(request: Request, data: Json<Data>) -> Status {
         name: data.name.clone(),
         username: data.username.clone(),
         password: data.password.clone(),
-        created_at: chrono::Utc::now().timestamp() as i32,
-        updated_at: chrono::Utc::now().timestamp() as i32,
-        url: None,
-        notes: None,
+        created_at: Option::from(chrono::Utc::now().timestamp() as i32),
+        updated_at: Option::from(chrono::Utc::now().timestamp() as i32),
+        url: data.url.clone(),
+        notes: data.notes.clone(),
     };
 
     diesel::insert_into(schema::data::table)
@@ -110,7 +129,53 @@ fn create_data(request: Request, data: Json<Data>) -> Status {
     Status::Created
 }
 
+#[get("/data")]
+pub fn get_data(token: Token) -> Json<Vec<Data>> {
+    let mut connection = establish_connection();
+
+    let user_id = auth::decode_token(token.0);
+
+    let results = schema::data::table
+        .filter(schema::data::fk_user_id.eq(user_id))
+        .load::<Data>(&mut connection)
+        .expect("Error loading data");
+
+    Json(results)
+}
+
+
+#[patch("/data/<id>", data = "<data>")]
+pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> Status {
+    let mut connection = establish_connection();
+
+    let user_id = auth::decode_token(token.0);
+
+    let results = schema::data::table
+        .filter(schema::data::id.eq(id))
+        .filter(schema::data::fk_user_id.eq(user_id))
+        .first::<Data>(&mut connection)
+        .expect("Error loading data");
+
+    let updated_data = UpdateData {
+        name: data.name.clone(),
+        username: data.username.clone(),
+        password: data.password.clone(),
+        updated_at: Option::from(chrono::Utc::now().timestamp() as i32),
+        url: data.url.clone(),
+        notes: data.notes.clone(),
+    };
+
+    diesel::update(schema::data::table)
+        .filter(schema::data::id.eq(id))
+        .filter(schema::data::fk_user_id.eq(user_id))
+        .set(&updated_data)
+        .execute(&mut connection)
+        .expect("Error updating data");
+
+    Status::Ok
+}
+
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index]).mount("/", routes![register]).mount("/", routes![login]).mount("/", routes![create_data])
+    rocket::build().mount("/", routes![index]).mount("/", routes![register]).mount("/", routes![login]).mount("/", routes![create_data]).mount("/", routes![get_data]).mount("/", routes![update_data])
 }

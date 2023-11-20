@@ -6,8 +6,8 @@ create table data
     name       text    not null,
     username   text    not null,
     password   text    not null,
-    created_at integer not null,
-    updated_at integer not null,
+    created_at integer,
+    updated_at integer,
     url        text,
     notes      text,
     foreign key (fk_user_id) references user (id)
