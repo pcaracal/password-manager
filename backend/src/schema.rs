@@ -7,8 +7,8 @@ diesel::table! {
         name -> Text,
         username -> Text,
         password -> Text,
-        created_at -> Nullable<Integer>,
-        updated_at -> Nullable<Integer>,
+        created_at -> Nullable<BigInt>,
+        updated_at -> Nullable<BigInt>,
         url -> Nullable<Text>,
         notes -> Nullable<Text>,
     }

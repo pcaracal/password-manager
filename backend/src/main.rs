@@ -94,11 +94,12 @@ fn create_data(token: Token, data: Json<Data>) -> (Status, Option<Json<Data>>) {
         name: data.name.clone(),
         username: data.username.clone(),
         password: data.password.clone(),
-        created_at: Option::from(chrono::Utc::now().timestamp() as i32),
-        updated_at: Option::from(chrono::Utc::now().timestamp() as i32),
+        created_at: Option::from(chrono::Utc::now().timestamp() * 1000),
+        updated_at: Option::from(chrono::Utc::now().timestamp() * 1000),
         url: data.url.clone(),
         notes: data.notes.clone(),
     };
+    println!("{:?}", chrono::Utc::now().timestamp());
 
     diesel::insert_into(schema::data::table)
         .values(&new_data)
@@ -145,7 +146,7 @@ pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> (Status, Op
         name: data.name.clone(),
         username: data.username.clone(),
         password: data.password.clone(),
-        updated_at: Option::from(chrono::Utc::now().timestamp() as i32),
+        updated_at: Option::from(chrono::Utc::now().timestamp() * 1000),
         url: data.url.clone(),
         notes: data.notes.clone(),
     };

@@ -6,12 +6,13 @@ create table data
     name       text    not null,
     username   text    not null,
     password   text    not null,
-    created_at integer,
-    updated_at integer,
+    created_at bigint,
+    updated_at bigint,
     url        text,
     notes      text,
     foreign key (fk_user_id) references user (id)
 );
 
 insert into data (fk_user_id, name, username, password, created_at, updated_at, url, notes)
-values (1, 'Google', 'user', 'pass', 1234567890, 1234567890, 'http://www.google.com', 'Google is a search engine');
+values (1, 'Google', 'user', 'pass', 1700559734000, 1700559734000, 'http://www.google.com',
+        'Google is a search engine');

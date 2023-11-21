@@ -20,8 +20,8 @@ pub struct Data {
     pub name: String,
     pub username: String,
     pub password: String,
-    pub created_at: Option<i32>,
-    pub updated_at: Option<i32>,
+    pub created_at: Option<i64>,
+    pub updated_at: Option<i64>,
     pub url: Option<String>,
     pub notes: Option<String>,
 }
@@ -32,7 +32,7 @@ pub struct UpdateData {
     pub name: Option<String>,
     pub username: Option<String>,
     pub password: Option<String>,
-    pub updated_at: Option<i32>,
+    pub updated_at: Option<i64>,
     pub url: Option<String>,
     pub notes: Option<String>,
 }
