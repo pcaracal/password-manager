@@ -1,6 +1,6 @@
 <div>
   <h2>Login</h2>
-  <form (ngSubmit)="onSubmit()">
+  <form (ngSubmit)="onLogin()">
     <div>
       <label for="username">Username</label>
       <input
@@ -23,6 +23,7 @@
     </div>
     <div>
       <button type="submit">Login</button>
+      <button (click)="onRegister()">Register</button>
     </div>
   </form>
 </div>

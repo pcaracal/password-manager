@@ -1,0 +1,54 @@
+<div>
+  <table>
+    <thead>
+    <tr>
+      <th>name</th>
+      <th>username</th>
+      <th>password</th>
+      <th>url</th>
+      <th>notes</th>
+      <th>created_at</th>
+      <th>updated_at</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let item of data">
+      <td>{{this._storageService.decrypt_aes(item.name).substring(128)}}</td>
+      <td>{{this._storageService.decrypt_aes(item.username).substring(128)}}</td>
+      <td>{{this._storageService.decrypt_aes(item.password).substring(128)}}</td>
+      <td>{{this._storageService.decrypt_aes(item.url).substring(128)}}</td>
+      <td>{{this._storageService.decrypt_aes(item.notes).substring(128)}}</td>
+      <td>{{item.created_at}}</td>
+      <td>{{item.updated_at}}</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div>
+  <form (ngSubmit)="onSubmit()" #form="ngForm">
+    <div>
+      <label for="name">name</label>
+      <input type="text" id="name" name="name" [(ngModel)]="newName" required>
+    </div>
+    <div>
+      <label for="username">username</label>
+      <input type="text" id="username" name="username" [(ngModel)]="newUsername" required>
+    </div>
+    <div>
+      <label for="password">password</label>
+      <input type="text" id="password" name="password" [(ngModel)]="newPassword" required>
+    </div>
+    <div>
+      <label for="url">url</label>
+      <input type="text" id="url" name="url" [(ngModel)]="newUrl" required>
+    </div>
+    <div>
+      <label for="notes">notes</label>
+      <input type="text" id="notes" name="notes" [(ngModel)]="newNotes" required>
+    </div>
+    <div>
+      <button type="submit" [disabled]="!form.valid">Submit</button>
+    </div>
+  </form>
+</div>

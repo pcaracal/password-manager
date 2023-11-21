@@ -11,7 +11,7 @@ use rocket::http::Status;
 use rocket::request::{self, Outcome, Request, FromRequest};
 
 #[post("/register", data = "<user>")]
-fn register(user: Json<User>) -> (Status, Option<String>) {
+fn register(user: Json<User>) -> (Status, Option<Json<String>>) {
     let mut connection = establish_connection();
     let new_user = User {
         id: None,
@@ -37,11 +37,11 @@ fn register(user: Json<User>) -> (Status, Option<String>) {
         .first::<User>(&mut connection)
         .expect("Error loading users");
 
-    (Status::Ok, Option::from(auth::encode_token(results.id)))
+    (Status::Ok, Option::from(Json(auth::encode_token(results.id))))
 }
 
 #[post("/login", data = "<user>")]
-fn login(user: Json<User>) -> (Status, Option<String>) {
+fn login(user: Json<User>) -> (Status, Option<Json<String>>) {
     let mut connection = establish_connection();
 
     match schema::user::table
@@ -57,7 +57,8 @@ fn login(user: Json<User>) -> (Status, Option<String>) {
         .expect("Error loading users");
 
     if auth::verify_password(&user.password, &results.password) {
-        (Status::Ok, Option::from(auth::encode_token(results.id)))
+        // (Status::Ok, Option::from(auth::encode_token(results.id)))
+        (Status::Ok, Option::from(Json(auth::encode_token(results.id))))
     } else {
         (Status::Unauthorized, None)
     }
@@ -169,7 +170,14 @@ pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> (Status, Op
 
 #[launch]
 fn rocket() -> _ {
+    let cors = rocket_cors::CorsOptions::default()
+        .allowed_origins(rocket_cors::AllowedOrigins::all())
+        .allow_credentials(true)
+        .to_cors().unwrap();
+
+
     rocket::build()
+        .attach(cors)
         .mount("/", routes![register])
         .mount("/", routes![login])
         .mount("/", routes![create_data])
