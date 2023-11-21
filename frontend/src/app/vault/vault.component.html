@@ -1,54 +1,58 @@
-<div>
+<div class="vault-main">
+  <h1>Vault</h1>
   <table>
     <thead>
     <tr>
-      <th>name</th>
-      <th>username</th>
-      <th>password</th>
-      <th>url</th>
-      <th>notes</th>
-      <th>created_at</th>
-      <th>updated_at</th>
+      <th>Items</th>
+      <!--      <th>Username</th>-->
+      <!--      <th>Password</th>-->
+      <!--      <th>Url</th>-->
+      <!--      <th>Notes</th>-->
+      <!--      <th>Created At</th>-->
+      <!--      <th>Updated At</th>-->
     </tr>
     </thead>
     <tbody>
     <tr *ngFor="let item of data">
-      <td>{{this._storageService.decrypt_aes(item.name).substring(128)}}</td>
-      <td>{{this._storageService.decrypt_aes(item.username).substring(128)}}</td>
-      <td>{{this._storageService.decrypt_aes(item.password).substring(128)}}</td>
-      <td>{{this._storageService.decrypt_aes(item.url).substring(128)}}</td>
-      <td>{{this._storageService.decrypt_aes(item.notes).substring(128)}}</td>
-      <td>{{item.created_at}}</td>
-      <td>{{item.updated_at}}</td>
+      <td (click)="editData(item.id)">{{this._storageService.decrypt_aes(item.name).substring(128)}}</td>
+      <!--      <td>{{this._storageService.decrypt_aes(item.username).substring(128)}}</td>-->
+      <!--      <td>{{this._storageService.decrypt_aes(item.password).substring(128)}}</td>-->
+      <!--      <td>{{this._storageService.decrypt_aes(item.url).substring(128)}}</td>-->
+      <!--      <td>{{this._storageService.decrypt_aes(item.notes).substring(128)}}</td>-->
+      <!--      <td>{{item.created_at}}</td>-->
+      <!--      <td>{{item.updated_at}}</td>-->
     </tr>
     </tbody>
   </table>
+
+  <button *ngIf="!isCreating && !isEditing" (click)="isCreating = !isCreating">Create</button>
 </div>
 
-<div>
+<div *ngIf="isCreating || isEditing" class="input-container">
   <form (ngSubmit)="onSubmit()" #form="ngForm">
     <div>
-      <label for="name">name</label>
+      <label for="name">Name</label>
       <input type="text" id="name" name="name" [(ngModel)]="newName" required>
     </div>
     <div>
-      <label for="username">username</label>
+      <label for="username">Username</label>
       <input type="text" id="username" name="username" [(ngModel)]="newUsername" required>
     </div>
     <div>
-      <label for="password">password</label>
+      <label for="password">Password</label>
       <input type="text" id="password" name="password" [(ngModel)]="newPassword" required>
     </div>
     <div>
-      <label for="url">url</label>
+      <label for="url">Url</label>
       <input type="text" id="url" name="url" [(ngModel)]="newUrl" required>
     </div>
     <div>
-      <label for="notes">notes</label>
+      <label for="notes">Notes</label>
       <input type="text" id="notes" name="notes" [(ngModel)]="newNotes" required>
     </div>
-    <div>
-      <button type="submit" [disabled]="!form.valid">Submit</button>
+    <div class="buttons">
+      <button type="submit" [disabled]="!form.valid">Save</button>
+      <button type="button" (click)="onCancel()">Cancel</button>
     </div>
   </form>
 </div>

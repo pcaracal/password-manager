@@ -41,4 +41,15 @@ export class ApiService {
     const body = {fk_user_id: -1, name: name, username: username, password: password, url: url, notes: notes};
     return this._http.post(this._url + "/data", body, httpOptions);
   }
+
+  patchData(id: number, name: string, username: string, password: string, url: string, notes: string): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Authorization': sessionStorage.getItem('token') || ""
+      })
+    }
+
+    const body = {name: name, username: username, password: password, url: url, notes: notes};
+    return this._http.patch(this._url + "/data/" + id, body, httpOptions);
+  }
 }
