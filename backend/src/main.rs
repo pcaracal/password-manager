@@ -3,7 +3,6 @@ mod auth;
 #[macro_use]
 extern crate rocket;
 
-use std::convert::Infallible;
 use diesel::prelude::*;
 use backend::*;
 use backend::models::{Data, UpdateData, User};
@@ -11,21 +10,8 @@ use rocket::serde::json::Json;
 use rocket::http::Status;
 use rocket::request::{self, Outcome, Request, FromRequest};
 
-#[get("/")] // Returns a list of all users
-fn index() -> String {
-    use backend::schema::user::dsl::*;
-    let mut connection = establish_connection();
-    let results = user.load::<User>(&mut connection).expect("Error loading users");
-
-    let mut response = String::from("Hello, world!\n");
-    for usr in results {
-        response.push_str(&format!("{:?} {:?}: {:?}\n", usr.id, usr.username, usr.password));
-    }
-    response
-}
-
 #[post("/register", data = "<user>")]
-fn register(user: Json<User>) -> String {
+fn register(user: Json<User>) -> (Status, Option<String>) {
     let mut connection = establish_connection();
     let new_user = User {
         id: None,
@@ -36,9 +22,10 @@ fn register(user: Json<User>) -> String {
     match schema::user::table
         .filter(schema::user::username.eq(&user.username))
         .first::<User>(&mut connection) {
-        Ok(_) => return String::from("409"),
+        Ok(_) => return (Status::Conflict, None),
         Err(_) => (),
     };
+
 
     diesel::insert_into(schema::user::table)
         .values(&new_user)
@@ -50,18 +37,18 @@ fn register(user: Json<User>) -> String {
         .first::<User>(&mut connection)
         .expect("Error loading users");
 
-    auth::encode_token(results.id)
+    (Status::Ok, Option::from(auth::encode_token(results.id)))
 }
 
-#[post("/login", data = "<user>")] // Checks if the user exists and if the password is correct and creates a JWT
-fn login(user: Json<User>) -> String {
+#[post("/login", data = "<user>")]
+fn login(user: Json<User>) -> (Status, Option<String>) {
     let mut connection = establish_connection();
 
     match schema::user::table
         .filter(schema::user::username.eq(&user.username))
         .first::<User>(&mut connection) {
         Ok(_) => (),
-        Err(_) => return String::from("404"),
+        Err(_) => return (Status::NotFound, None),
     };
 
     let results = schema::user::table
@@ -70,9 +57,9 @@ fn login(user: Json<User>) -> String {
         .expect("Error loading users");
 
     if auth::verify_password(&user.password, &results.password) {
-        auth::encode_token(results.id)
+        (Status::Ok, Option::from(auth::encode_token(results.id)))
     } else {
-        String::from("401")
+        (Status::Unauthorized, None)
     }
 }
 
@@ -97,12 +84,9 @@ impl<'r> FromRequest<'r> for Token<'r> {
 
 
 #[post("/data", data = "<data>")]
-fn create_data(token: Token, data: Json<Data>) -> Status {
+fn create_data(token: Token, data: Json<Data>) -> (Status, Option<Json<Data>>) {
     let mut connection = establish_connection();
-
     let user_id = auth::decode_token(token.0);
-    println!("{:?}", user_id);
-    println!("{:?}", token.0);
 
     let new_data = Data {
         id: None,
@@ -126,13 +110,12 @@ fn create_data(token: Token, data: Json<Data>) -> Status {
         .first::<Data>(&mut connection)
         .expect("Error loading data");
 
-    Status::Created
+    (Status::Ok, Option::from(Json(results)))
 }
 
 #[get("/data")]
-pub fn get_data(token: Token) -> Json<Vec<Data>> {
+pub fn get_data(token: Token) -> (Status, Option<Json<Vec<Data>>>) {
     let mut connection = establish_connection();
-
     let user_id = auth::decode_token(token.0);
 
     let results = schema::data::table
@@ -140,21 +123,23 @@ pub fn get_data(token: Token) -> Json<Vec<Data>> {
         .load::<Data>(&mut connection)
         .expect("Error loading data");
 
-    Json(results)
+    (Status::Ok, Option::from(Json(results)))
 }
 
 
 #[patch("/data/<id>", data = "<data>")]
-pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> Status {
+pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> (Status, Option<Json<Data>>) {
     let mut connection = establish_connection();
-
     let user_id = auth::decode_token(token.0);
 
-    let results = schema::data::table
+    match schema::data::table
         .filter(schema::data::id.eq(id))
         .filter(schema::data::fk_user_id.eq(user_id))
-        .first::<Data>(&mut connection)
-        .expect("Error loading data");
+        .first::<Data>(&mut connection) {
+        Ok(_) => (),
+        Err(_) => return (Status::NotFound, None),
+    };
+
 
     let updated_data = UpdateData {
         name: data.name.clone(),
@@ -172,10 +157,21 @@ pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> Status {
         .execute(&mut connection)
         .expect("Error updating data");
 
-    Status::Ok
+    let results = schema::data::table
+        .filter(schema::data::id.eq(id))
+        .filter(schema::data::fk_user_id.eq(user_id))
+        .first::<Data>(&mut connection)
+        .expect("Error loading data");
+
+    (Status::Ok, Option::from(Json(results)))
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index]).mount("/", routes![register]).mount("/", routes![login]).mount("/", routes![create_data]).mount("/", routes![get_data]).mount("/", routes![update_data])
+    rocket::build()
+        .mount("/", routes![register])
+        .mount("/", routes![login])
+        .mount("/", routes![create_data])
+        .mount("/", routes![get_data])
+        .mount("/", routes![update_data])
 }
