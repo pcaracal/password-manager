@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {ApiService} from "../api.service";
 import {FormsModule} from "@angular/forms";
 import {StorageService} from '../storage.service';
-import {ExtendedTemplateDiagnosticName} from "@angular/compiler-cli/src/ngtsc/diagnostics";
 
 @Component({
   selector: 'app-vault',
@@ -17,6 +16,8 @@ export class VaultComponent implements OnInit {
   isCreating: boolean = false;
   isEditing: boolean = false;
 
+  isViewingPassword: boolean = false;
+
   editId: number = -1;
 
   newName: string = "";
@@ -24,6 +25,8 @@ export class VaultComponent implements OnInit {
   newPassword: string = "";
   newUrl: string = "";
   newNotes: string = "";
+
+  newPasswordLength = 16;
 
   data: [
     {
@@ -132,6 +135,9 @@ export class VaultComponent implements OnInit {
     this.newUrl = "";
     this.newNotes = "";
 
+    this.isViewingPassword = false;
+
+
     this.editId = -1;
   }
 
@@ -148,5 +154,9 @@ export class VaultComponent implements OnInit {
 
 
     this.isEditing = true;
+  }
+
+  generatePassword() {
+    this.newPassword = this._storageService.generate_password(this.newPasswordLength);
   }
 }

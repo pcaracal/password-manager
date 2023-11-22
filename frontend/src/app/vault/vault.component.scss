@@ -1,19 +1,23 @@
+button {
+  font-size: 1.5rem;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  background-color: #303344 !important;
+  color: #fff;
+  cursor: pointer;
+
+  &:hover {
+    border: 1px solid #cba6f7 !important;
+  }
+}
+
 .vault-main {
   font-family: Inter, sans-serif;
   display: flex;
   flex-direction: column;
-
-  button {
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    margin: 0.5rem 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 100%;
-    background-color: #303344;
-    color: #fff;
-    cursor: pointer;
-  }
 
   table {
     font-family: "JetBrains Mono", monospace;
@@ -67,7 +71,14 @@
     margin: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 5px;
-    width: 100%;
+    width: 93%;
+
+    font-family: "JetBrains Mono NF", monospace;
+
+    &:focus {
+      outline: none;
+      border: 1px solid #cba6f7;
+    }
   }
 
   button {
@@ -82,9 +93,39 @@
     cursor: pointer;
   }
 
+  .password-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    button {
+      width: 15%;
+    }
+  }
+
   .buttons {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+  }
+}
+
+.password-length-container {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  label {
+    font-family: Inter, sans-serif;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0.5rem 0;
+  }
+
+  p {
+    font-family: "JetBrains Mono", monospace;
   }
 }

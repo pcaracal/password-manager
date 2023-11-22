@@ -39,4 +39,22 @@ export class StorageService {
     }
     return sha3_512(salt);
   }
+
+  generate_password(length: number): string {
+    let mt = new MersenneTwister();
+    mt.init_seed(new Date().getTime());
+    let password = "";
+
+    let forbidden = [34, 39, 40, 41, 47, 91, 92, 93, 96, 123, 124, 125];
+    while (password.length < length) {
+      let c = Math.floor(mt.random() * 94) + 33;
+      if (forbidden.includes(c)) {
+        continue;
+      }
+
+      password += String.fromCharCode(c);
+    }
+
+    return password;
+  }
 }

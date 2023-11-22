@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/node,angular,rust,rust-analyzer,intellij+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,angular,rust,rust-analyzer,intellij+all
 
+db.sqlite3
+
 ### Angular ###
 ## Angular ##
 # compiled output
