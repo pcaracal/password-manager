@@ -66,6 +66,9 @@ export class VaultComponent {
   _Url: string = '';
   _Notes: string = '';
 
+  _NewPasswordLength: number = 16;
+  isViewingPassword: boolean = false;
+
   data: {
     id: number,
     fk_user_id: number,
@@ -171,5 +174,10 @@ export class VaultComponent {
     this._NewPassword = '';
     this._NewPassword2 = '';
     this.isChangingMasterPassword = false;
+  }
+
+  generatePassword() {
+    this.isViewingPassword = true;
+    this._Password = this._storageService.generate_password(this._NewPasswordLength);
   }
 }
