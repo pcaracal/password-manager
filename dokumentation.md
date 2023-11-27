@@ -25,3 +25,8 @@
 
 - Create documentation
 - Create a basic README.md with installation instructions
+
+## 27.11.2023
+
+- User is now able to change their master password
+- Fixed errors in encryption and decryption of data (this took a lot of time to debug)

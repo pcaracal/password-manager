@@ -96,6 +96,8 @@ export class VaultComponent implements OnInit {
                   this._apiService.patchUser(this._storageService.newMasterPassword).pipe().subscribe(
                       data => {
                         sessionStorage.removeItem('token');
+                        sessionStorage.removeItem('masterPassword');
+                        sessionStorage.removeItem('newMasterPassword');
                         window.location.href = "/login";
                       },
                       error => {
