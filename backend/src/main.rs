@@ -5,7 +5,7 @@ extern crate rocket;
 
 use diesel::prelude::*;
 use backend::*;
-use backend::models::{Data, UpdateData, User};
+use backend::models::{Data, UpdateData, UpdateUser, User};
 use rocket::serde::json::Json;
 use rocket::http::Status;
 use rocket::request::{self, Outcome, Request, FromRequest};
@@ -168,6 +168,46 @@ pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> (Status, Op
     (Status::Ok, Option::from(Json(results)))
 }
 
+#[patch("/user", data = "<user>")]
+fn update_login(token: Token, user: Json<UpdateUser>) -> (Status, Option<Json<String>>) {
+    let mut connection = establish_connection();
+    let user_id = auth::decode_token(token.0);
+
+    match schema::user::table
+        .filter(schema::user::id.eq(user_id))
+        .first::<User>(&mut connection) {
+        Ok(_) => (),
+        Err(_) => return (Status::NotFound, None),
+    };
+
+    let pw: String = match user.password.clone() {
+        Some(pw) => auth::hash_password(&pw),
+        None => schema::user::table
+            .filter(schema::user::id.eq(user_id))
+            .select(schema::user::password)
+            .first::<String>(&mut connection)
+            .expect("Error loading users"),
+    };
+
+    let updated_user = UpdateUser {
+        username: None,
+        password: Some(pw),
+    };
+
+    diesel::update(schema::user::table)
+        .filter(schema::user::id.eq(user_id))
+        .set(&updated_user)
+        .execute(&mut connection)
+        .expect("Error updating user");
+
+    let results = schema::user::table
+        .filter(schema::user::id.eq(user_id))
+        .first::<User>(&mut connection)
+        .expect("Error loading users");
+
+    (Status::Ok, Option::from(Json(auth::encode_token(results.id))))
+}
+
 #[launch]
 fn rocket() -> _ {
     let cors = rocket_cors::CorsOptions::default()
@@ -183,4 +223,5 @@ fn rocket() -> _ {
         .mount("/", routes![create_data])
         .mount("/", routes![get_data])
         .mount("/", routes![update_data])
+        .mount("/", routes![update_login])
 }

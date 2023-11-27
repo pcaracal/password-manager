@@ -23,16 +23,16 @@ export class LoginComponent {
     if (this.username.trim() == "" || this.password.trim() == "") return;
 
     this._apiService.loginPost(this.username, this.password).pipe().subscribe(
-      data => {
-        sessionStorage.setItem('token', data);
-        console.log("Login successful");
+        data => {
+          sessionStorage.setItem('token', data);
+          console.log("Login successful");
 
-        this._storageService.masterPassword = this.password;
-        window.location.href = "/vault";
-      },
-      error => {
-        console.warn("Login failed");
-      }
+          window.location.href = "/vault";
+          this._storageService.masterPassword = this.password;
+        },
+        error => {
+          console.warn("Login failed");
+        }
     );
   }
 
@@ -40,16 +40,16 @@ export class LoginComponent {
     if (this.username.trim() == "" || this.password.trim() == "") return;
 
     this._apiService.registerPost(this.username, this.password).pipe().subscribe(
-      data => {
-        sessionStorage.setItem('token', data);
-        console.log("Register successful");
+        data => {
+          sessionStorage.setItem('token', data);
+          console.log("Register successful");
 
-        this._storageService.masterPassword = this.password;
-        window.location.href = "/vault";
-      },
-      error => {
-        console.warn("Register failed");
-      }
+          window.location.href = "/vault";
+          this._storageService.masterPassword = this.password;
+        },
+        error => {
+          console.warn("Register failed");
+        }
     );
   }
 }

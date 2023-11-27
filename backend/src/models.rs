@@ -36,3 +36,10 @@ pub struct UpdateData {
     pub url: Option<String>,
     pub notes: Option<String>,
 }
+
+#[derive(AsChangeset, Serialize, Deserialize)]
+#[diesel(table_name = crate::schema::user)]
+pub struct UpdateUser {
+    pub username: Option<String>,
+    pub password: Option<String>,
+}

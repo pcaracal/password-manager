@@ -18,6 +18,8 @@ export class VaultComponent implements OnInit {
 
   isViewingPassword: boolean = false;
 
+  isChangingMasterPassword: boolean = false;
+
   editId: number = -1;
 
   newName: string = "";
@@ -27,6 +29,10 @@ export class VaultComponent implements OnInit {
   newNotes: string = "";
 
   newPasswordLength = 16;
+
+  newMasterPassword: string = "";
+  oldMasterPassword: string = "";
+  newMasterPasswordConfirm: string = "";
 
   data: [
     {
@@ -51,76 +57,136 @@ export class VaultComponent implements OnInit {
     }
 
     this._apiService.getData().pipe().subscribe(
-      data => {
-        this.data = data;
-        console.log(data);
-      },
-      error => {
-        console.log(error);
-      }
+        data => {
+          this.data = data;
+          console.log(data);
+        },
+        error => {
+          console.log(error);
+        }
     );
   }
 
+  changeMasterPassword() {
+    if (this.newMasterPassword !== this.newMasterPasswordConfirm) {
+      return;
+    }
+
+    this._storageService.newMasterPassword = this.newMasterPassword;
+
+    this.data?.forEach(e => {
+      let nName = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.name));
+      let nUsername = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.username));
+      let nPassword = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.password));
+      let nUrl = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.url));
+      let nNotes = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.notes));
+
+      this._apiService.patchData(
+          e.id,
+          nName,
+          nUsername,
+          nPassword,
+          nUrl,
+          nNotes
+      ).pipe().subscribe({
+        next: data => {
+          if (e.id === this.data?.slice(-1)[0].id) {
+            this._apiService.getData().pipe().subscribe(
+                data => {
+                  this._apiService.patchUser(this._storageService.newMasterPassword).pipe().subscribe(
+                      data => {
+                        sessionStorage.removeItem('token');
+                        window.location.href = "/login";
+                      },
+                      error => {
+                        console.error(error);
+                      }
+                  );
+
+
+                },
+                error => {
+                  console.error(error);
+                }
+            );
+          }
+        },
+        error: error => {
+          console.error(error);
+        }
+      });
+    })
+
+
+  }
+
+  cancelChangeMasterPassword() {
+    this.isChangingMasterPassword = false;
+    this.newMasterPassword = "";
+    this.oldMasterPassword = "";
+    this.newMasterPasswordConfirm = "";
+  }
+
   onSubmit() {
-    let eName = this._storageService.encrypt_aes(this._storageService.generate_salt() + this.newName);
-    let eUsername = this._storageService.encrypt_aes(this._storageService.generate_salt() + this.newUsername);
-    let ePassword = this._storageService.encrypt_aes(this._storageService.generate_salt() + this.newPassword);
-    let eUrl = this._storageService.encrypt_aes(this._storageService.generate_salt() + this.newUrl);
-    let eNotes = this._storageService.encrypt_aes(this._storageService.generate_salt() + this.newNotes);
+    let eName = this._storageService.encrypt_aes(this.newName);
+    let eUsername = this._storageService.encrypt_aes(this.newUsername);
+    let ePassword = this._storageService.encrypt_aes(this.newPassword);
+    let eUrl = this._storageService.encrypt_aes(this.newUrl);
+    let eNotes = this._storageService.encrypt_aes(this.newNotes);
 
     if (this.isEditing) {
       this._apiService.patchData(
-        this.editId,
-        eName,
-        eUsername,
-        ePassword,
-        eUrl,
-        eNotes
+          this.editId,
+          eName,
+          eUsername,
+          ePassword,
+          eUrl,
+          eNotes
       ).pipe().subscribe(
-        data => {
-          this._apiService.getData().pipe().subscribe(
-            data => {
-              this.data = data;
-              console.log(data);
+          data => {
+            this._apiService.getData().pipe().subscribe(
+                data => {
+                  this.data = data;
+                  console.log(data);
 
-              this.onCancel();
-            },
-            error => {
-              console.log(error);
-            }
-          );
-        },
-        error => {
-          // console.log(error);
-        }
+                  this.onCancel();
+                },
+                error => {
+                  console.log(error);
+                }
+            );
+          },
+          error => {
+            // console.log(error);
+          }
       )
     }
 
     if (this.isCreating) {
       this._apiService.postData(
-        eName,
-        eUsername,
-        ePassword,
-        eUrl,
-        eNotes
+          eName,
+          eUsername,
+          ePassword,
+          eUrl,
+          eNotes
       ).pipe().subscribe(
-        data => {
-          // console.log(data);
-          this._apiService.getData().pipe().subscribe(
-            data => {
-              this.data = data;
-              console.log(data);
+          data => {
+            // console.log(data);
+            this._apiService.getData().pipe().subscribe(
+                data => {
+                  this.data = data;
+                  console.log(data);
 
-              this.onCancel();
-            },
-            error => {
-              console.log(error);
-            }
-          );
-        },
-        error => {
-          // console.log(error);
-        }
+                  this.onCancel();
+                },
+                error => {
+                  console.log(error);
+                }
+            );
+          },
+          error => {
+            // console.log(error);
+          }
       );
     }
   }
@@ -146,11 +212,11 @@ export class VaultComponent implements OnInit {
 
     this.editId = id;
 
-    this.newName = this._storageService.decrypt_aes(oldData.name).substring(128);
-    this.newUsername = this._storageService.decrypt_aes(oldData.username).substring(128);
-    this.newPassword = this._storageService.decrypt_aes(oldData.password).substring(128);
-    this.newUrl = this._storageService.decrypt_aes(oldData.url).substring(128);
-    this.newNotes = this._storageService.decrypt_aes(oldData.notes).substring(128);
+    this.newName = this._storageService.decrypt_aes(oldData.name);
+    this.newUsername = this._storageService.decrypt_aes(oldData.username);
+    this.newPassword = this._storageService.decrypt_aes(oldData.password);
+    this.newUrl = this._storageService.decrypt_aes(oldData.url);
+    this.newNotes = this._storageService.decrypt_aes(oldData.notes);
 
 
     this.isEditing = true;

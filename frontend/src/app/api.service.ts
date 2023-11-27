@@ -52,4 +52,15 @@ export class ApiService {
     const body = {name: name, username: username, password: password, url: url, notes: notes};
     return this._http.patch(this._url + "/data/" + id, body, httpOptions);
   }
+
+  patchUser(password: string) {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Authorization': sessionStorage.getItem('token') || ""
+      })
+    }
+
+    const body = {password: password};
+    return this._http.patch(this._url + "/user", body, httpOptions);
+  }
 }
