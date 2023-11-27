@@ -1,7 +1,10 @@
-<div class="container" *ngIf="!isCreating && !isViewing">
+<div class="container" *ngIf="!isCreating && !isViewing && !isChangingMasterPassword">
   <article>
     <header>
-      <h1>Vault</h1>
+      <div class="grid">
+        <h1>Vault</h1>
+        <button (click)="isChangingMasterPassword = true" class="outline secondary">Change Master Password</button>
+      </div>
     </header>
     <body>
     <table>
@@ -17,6 +20,56 @@
     <footer>
       <button (click)="addPassword()">Add</button>
     </footer>
+  </article>
+</div>
+
+<div class="container" *ngIf="isChangingMasterPassword">
+  <article>
+    <header>
+      <h1>Change Master Password</h1>
+    </header>
+
+    <form (ngSubmit)="changeMasterPassword()">
+      <body>
+      <label for="oldpassword">Old Password</label>
+      <input
+        type="password"
+        id="oldpassword"
+        name="oldpassword"
+        placeholder="Old Password"
+        [(ngModel)]="_OldPassword"
+        required
+        autocomplete="off"
+      >
+      <label for="newpassword">New Password</label>
+      <input
+        type="password"
+        id="newpassword"
+        name="newpassword"
+        placeholder="New Password"
+        [(ngModel)]="_NewPassword"
+        required
+        autocomplete="off"
+      >
+      <label for="newpassword2">Repeat New Password</label>
+      <input
+        type="password"
+        id="newpassword2"
+        name="newpassword2"
+        placeholder="Repeat New Password"
+        [(ngModel)]="_NewPassword2"
+        required
+        autocomplete="off"
+      >
+      </body>
+
+      <footer>
+        <div class="grid">
+          <button type="submit">Change</button>
+          <button (click)="cancel()" class="outline secondary">Cancel</button>
+        </div>
+      </footer>
+    </form>
   </article>
 </div>
 

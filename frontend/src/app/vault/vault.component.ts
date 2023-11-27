@@ -15,6 +15,50 @@ export class VaultComponent {
   isCreating: boolean = false;
   isViewing: boolean = false;
 
+  // Master password stuff
+  _OldPassword: string = '';
+  _NewPassword: string = '';
+  _NewPassword2: string = '';
+  isChangingMasterPassword: boolean = false;
+
+  changeMasterPassword() {
+    if (this._NewPassword != this._NewPassword2 || this._NewPassword == '' || this._storageService.masterPassword != this._OldPassword) {
+      return;
+    }
+
+    this._storageService.newMasterPassword = this._NewPassword;
+
+    this.data?.forEach(e => {
+      this._apiService.dataPatch(
+        e.id,
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.name)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.username)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.password)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.url)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.notes))
+      ).pipe().subscribe(
+        data => {
+          if (e.id == this.data?.slice(-1)[0].id) {
+            this._apiService.userPatch(this._storageService.newMasterPassword).pipe().subscribe(
+              data => {
+                this._storageService.masterPassword = this._storageService.newMasterPassword;
+                this._storageService.newMasterPassword = '';
+                this.isChangingMasterPassword = false;
+                window.location.reload();
+              },
+              error => {
+                console.error(error);
+              }
+            );
+          }
+        },
+        error => {
+          console.error(error);
+        }
+      );
+    })
+  }
+
   _Id: number = -1;
   _Name: string = '';
   _Username: string = '';
@@ -122,5 +166,10 @@ export class VaultComponent {
     this._Password = '';
     this._Url = '';
     this._Notes = '';
+
+    this._OldPassword = '';
+    this._NewPassword = '';
+    this._NewPassword2 = '';
+    this.isChangingMasterPassword = false;
   }
 }

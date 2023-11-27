@@ -72,4 +72,15 @@ export class ApiService {
 
     return this._http.delete(this._url + '/data/' + id, httpOptions);
   }
+
+  userPatch(password: string): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Authorization': sessionStorage.getItem('token') || ''
+      })
+    }
+
+    const body = {password: password};
+    return this._http.patch(this._url + '/user', body, httpOptions);
+  }
 }

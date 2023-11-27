@@ -20,7 +20,7 @@ export class StorageService {
   }
 
   get masterPassword(): string {
-    return atob(sessionStorage.getItem(atob('masterPassword')) || '');
+    return atob(sessionStorage.getItem(btoa('masterPassword')) || '');
   }
 
   set masterPassword(value: string) {
@@ -28,7 +28,7 @@ export class StorageService {
   }
 
   get newMasterPassword(): string {
-    return atob(sessionStorage.getItem(atob('newMasterPassword')) || '');
+    return atob(sessionStorage.getItem(btoa('newMasterPassword')) || '');
   }
 
   set newMasterPassword(value: string) {
