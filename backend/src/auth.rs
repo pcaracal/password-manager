@@ -1,6 +1,8 @@
 use chrono::Utc;
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use jwt_simple::prelude::*;
+use dotenvy::dotenv;
+use std::env;
 
 use argon2::{
     password_hash::{
@@ -17,24 +19,31 @@ pub struct Claims {
 }
 
 pub fn encode_token(user_id: Option<i32>) -> String {
+    dotenv().ok();
     if user_id == None {
         return String::from("Error");
     }
 
     let claims = Claims {
         sub: user_id.unwrap().to_string(),
-        exp: (Utc::now() + chrono::Duration::hours(24)).timestamp() as usize,
+        exp: (Utc::now() + chrono::Duration::hours(1)).timestamp() as usize,
     };
 
     let header = Header::new(Algorithm::HS256);
-    let key = EncodingKey::from_secret("secret".as_ref());
+    let jwt_secret = env::var("JWT_SECRET").expect("jwt_secret must be set");
+    let key = EncodingKey::from_secret(jwt_secret.as_ref());
     let token = jsonwebtoken::encode(&header, &claims, &key).unwrap();
 
     token
 }
 
 pub fn decode_token(token: &str) -> i32 {
-    let key = DecodingKey::from_secret("secret".as_ref());
+    dotenv().ok();
+    if token == "" {
+        return -1;
+    }
+    let jwt_secret = env::var("JWT_SECRET").expect("jwt_secret must be set");
+    let key = DecodingKey::from_secret(jwt_secret.as_ref());
     let validation = Validation::new(Algorithm::HS256);
     let token_data = jsonwebtoken::decode::<Claims>(token, &key, &validation).unwrap();
 

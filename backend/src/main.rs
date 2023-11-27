@@ -9,6 +9,7 @@ use backend::models::{Data, UpdateData, UpdateUser, User};
 use rocket::serde::json::Json;
 use rocket::http::Status;
 use rocket::request::{self, Outcome, Request, FromRequest};
+use serde_json::json;
 
 #[post("/register", data = "<user>")]
 fn register(user: Json<User>) -> (Status, Option<Json<String>>) {
@@ -22,7 +23,7 @@ fn register(user: Json<User>) -> (Status, Option<Json<String>>) {
     match schema::user::table
         .filter(schema::user::username.eq(&user.username))
         .first::<User>(&mut connection) {
-        Ok(_) => return (Status::Conflict, None),
+        Ok(_) => return (Status::Conflict, Option::from(Json(String::from("User already exists")))),
         Err(_) => (),
     };
 
@@ -72,6 +73,10 @@ impl<'r> FromRequest<'r> for Token<'r> {
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         fn is_valid(token: &str) -> bool {
+            if token == "" {
+                return false;
+            }
+
             auth::decode_token(token) != -1
         }
 
@@ -208,13 +213,45 @@ fn update_login(token: Token, user: Json<UpdateUser>) -> (Status, Option<Json<St
     (Status::Ok, Option::from(Json(auth::encode_token(results.id))))
 }
 
+#[get("/login")]
+fn check_login(token: Token) -> Status {
+    let user_id = auth::decode_token(token.0);
+
+    if user_id == -1 {
+        return Status::Unauthorized;
+    }
+
+    Status::Ok
+}
+
+#[delete("/data/<id>")]
+pub fn delete_data(token: Token, id: i32) -> Status {
+    let mut connection = establish_connection();
+    let user_id = auth::decode_token(token.0);
+
+    match schema::data::table
+        .filter(schema::data::id.eq(id))
+        .filter(schema::data::fk_user_id.eq(user_id))
+        .first::<Data>(&mut connection) {
+        Ok(_) => (),
+        Err(_) => return Status::NotFound,
+    };
+
+    diesel::delete(schema::data::table)
+        .filter(schema::data::id.eq(id))
+        .filter(schema::data::fk_user_id.eq(user_id))
+        .execute(&mut connection)
+        .expect("Error deleting data");
+
+    Status::Ok
+}
+
 #[launch]
 fn rocket() -> _ {
     let cors = rocket_cors::CorsOptions::default()
         .allowed_origins(rocket_cors::AllowedOrigins::all())
         .allow_credentials(true)
         .to_cors().unwrap();
-
 
     rocket::build()
         .attach(cors)
@@ -224,4 +261,6 @@ fn rocket() -> _ {
         .mount("/", routes![get_data])
         .mount("/", routes![update_data])
         .mount("/", routes![update_login])
+        .mount("/", routes![check_login])
+        .mount("/", routes![delete_data])
 }

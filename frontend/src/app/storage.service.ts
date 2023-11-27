@@ -2,50 +2,48 @@ import {Injectable} from '@angular/core';
 import {sha3_512} from "js-sha3";
 import CryptoJS from "crypto-js";
 import MersenneTwister from "mersenne-twister";
+import {BehaviorSubject, Observable} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
 })
 export class StorageService {
-  public _masterPassword: string = "";
-  public _newMasterPassword: string = "";
+  private _isLoggedInSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  isLoggedIn$: Observable<boolean> = this._isLoggedInSubject.asObservable();
+
+  setLoggedIn(value: boolean): void {
+    this._isLoggedInSubject.next(value);
+  }
 
 
   constructor() {
   }
 
   get masterPassword(): string {
-    return sessionStorage.getItem('masterPassword') || "";
-    // return this._masterPassword;
+    return atob(sessionStorage.getItem(atob('masterPassword')) || '');
   }
 
   set masterPassword(value: string) {
-    sessionStorage.setItem('masterPassword', value);
-    // this._masterPassword = value;
+    sessionStorage.setItem(btoa('masterPassword'), btoa(value));
   }
 
   get newMasterPassword(): string {
-    return sessionStorage.getItem('newMasterPassword') || "";
-    // return this._newMasterPassword;
+    return atob(sessionStorage.getItem(atob('newMasterPassword')) || '');
   }
 
   set newMasterPassword(value: string) {
-    sessionStorage.setItem('newMasterPassword', value);
-    // this._newMasterPassword = value;
+    sessionStorage.setItem(btoa('newMasterPassword'), btoa(value));
   }
 
   encrypt_aes(plain: string): string {
-    console.log("encrypt old", sha3_512(this.masterPassword), "encrypt old unhashed", this.masterPassword)
     return CryptoJS.AES.encrypt(this.generate_salt() + plain, sha3_512(this.masterPassword)).toString();
   }
 
   encrypt_aes_new(plain: string): string {
-    console.log("encrypt new", sha3_512(this.newMasterPassword), "encrypt new unhashed", this.newMasterPassword)
     return CryptoJS.AES.encrypt(this.generate_salt() + plain, sha3_512(this.newMasterPassword)).toString();
   }
 
   decrypt_aes(cipher: string): string {
-    console.log("decrypt old", sha3_512(this.masterPassword), "decrypt old unhashed", this.masterPassword)
     return CryptoJS.AES.decrypt(cipher, sha3_512(this.masterPassword)).toString(CryptoJS.enc.Utf8).substring(128);
   }
 
