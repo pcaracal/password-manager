@@ -27,6 +27,8 @@ It has only been tested on Linux, but should also work on Windows and MacOS.
 5. Run `cargo install diesel_cli --no-default-features --features sqlite`
 6. Run `diesel setup`
 7. Run `diesel migration run`
+8. Run `cargo r`
+9. The backend should now be running on http://localhost:8000
 
 #### Frontend
 
