@@ -1,131 +1,33 @@
-button {
-  font-size: 1.5rem;
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-  background-color: #303344 !important;
-  color: #fff;
-  cursor: pointer;
-
-  &:hover {
-    border: 1px solid #cba6f7 !important;
-  }
+h1 {
+  margin-bottom: 0;
 }
 
-.vault-main {
-  font-family: Inter, sans-serif;
-  display: flex;
-  flex-direction: column;
-
-  table {
-    font-family: "JetBrains Mono", monospace;
-
-    th {
-      font-size: 1.5rem;
-      font-weight: 500;
-      padding: 1rem;
-      font-family: "JetBrains Mono ExtraBold", monospace;
-    }
-
-    td {
-      font-size: 1.5rem;
-      padding: 0.25rem;
-      margin-top: 0;
-      margin-bottom: 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-
-      &:hover {
-        background-color: #303344;
-      }
-    }
-
-    tr {
-      border: 1px solid #ccc;
-      border-collapse: collapse;
-      margin: 0;
-    }
-  }
+input, textarea {
+  font-family: "JetBrains Mono NF", monospace;
+  color: #f9e2af;
 }
 
-.input-container {
+.password-buttons {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-
-  label {
-    font-family: Inter, sans-serif;
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    width: 100%;
-  }
+  justify-content: space-between;
 
   input {
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 93%;
-
-    font-family: "JetBrains Mono NF", monospace;
-
-    &:focus {
-      outline: none;
-      border: 1px solid #cba6f7;
-    }
+    width: 70%;
   }
 
   button {
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 48%;
-    background-color: #303344;
-    color: #fff;
-    cursor: pointer;
-  }
-
-  .password-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-
-    button {
-      width: 15%;
-    }
-  }
-
-  .buttons {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    margin-left: 10px;
+    height: 62px;
+    width: 15%;
   }
 }
 
-.password-length-container {
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-
-  label {
-    font-family: Inter, sans-serif;
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    margin: 0.5rem 0.5rem 0;
-  }
-
-  p {
-    font-family: "JetBrains Mono", monospace;
+.vault-list {
+  tr, td {
+    &:hover {
+      cursor: pointer;
+      background-color: #1f2d38;
+      border-radius: 5px;
+    }
   }
 }

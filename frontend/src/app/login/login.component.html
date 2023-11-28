@@ -1,29 +1,63 @@
-<div class="login-main">
-  <h2>Login</h2>
-  <form (ngSubmit)="onLogin()">
-    <div>
-      <label for="username">Username</label>
+<div class="container">
+  <article>
+    <header>
+      <h1 style="margin-bottom: 0">Password Manager</h1>
+    </header>
+    <body>
+    <form (ngSubmit)="onLogin()" *ngIf="!isRegister">
       <input
         type="text"
         id="username"
         name="username"
+        placeholder="Username"
         [(ngModel)]="username"
         required
-      />
-    </div>
-    <div>
-      <label for="password">Password</label>
+        autocomplete="off"
+      >
       <input
         type="password"
         id="password"
         name="password"
+        placeholder="Password"
         [(ngModel)]="password"
         required
-      />
-    </div>
-    <div class="buttons">
+        autocomplete="off"
+      >
       <button type="submit">Login</button>
-      <button (click)="onRegister()">Register</button>
-    </div>
-  </form>
+      <button type="button" class="outline" (click)="isRegister = true">Create an Account</button>
+    </form>
+
+    <form (ngSubmit)="onRegister()" *ngIf="isRegister">
+      <input
+        type="text"
+        id="rusername"
+        name="username"
+        placeholder="Username"
+        [(ngModel)]="username"
+        required
+        autocomplete="off"
+      >
+      <input
+        type="password"
+        id="rpassword"
+        name="password"
+        placeholder="Password"
+        [(ngModel)]="password"
+        required
+        autocomplete="off"
+      >
+      <input
+        type="password"
+        id="passwordConfirm"
+        name="passwordConfirm"
+        placeholder="Confirm Password"
+        [(ngModel)]="passwordConfirm"
+        required
+        autocomplete="off"
+      >
+      <button type="submit">Register</button>
+      <button type="button" class="outline" (click)="isRegister = false">Return to Login</button>
+    </form>
+    </body>
+  </article>
 </div>

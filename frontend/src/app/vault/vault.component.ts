@@ -1,230 +1,206 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
+import {StorageService} from "../storage.service";
 import {ApiService} from "../api.service";
 import {FormsModule} from "@angular/forms";
-import {StorageService} from '../storage.service';
+import {PasswordStrengthMeterComponent} from "angular-password-strength-meter";
 
 @Component({
   selector: 'app-vault',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PasswordStrengthMeterComponent],
   templateUrl: './vault.component.html',
   styleUrl: './vault.component.scss'
 })
-
 export class VaultComponent implements OnInit {
   isCreating: boolean = false;
-  isEditing: boolean = false;
+  isViewing: boolean = false;
 
+
+  _Id: number = -1;
+  _Name: string = '';
+  _Username: string = '';
+  _Password: string = '';
+  _Url: string = '';
+  _Notes: string = '';
+
+  _NewPasswordLength: number = 16;
   isViewingPassword: boolean = false;
 
-  isChangingMasterPassword: boolean = false;
+  data: {
+    id: number,
+    fk_user_id: number,
+    name: string,
+    username: string,
+    password: string,
+    notes: string,
+    url: string,
+    created_at: number,
+    updated_at: number
+  }[] = [];
 
-  editId: number = -1;
-
-  newName: string = "";
-  newUsername: string = "";
-  newPassword: string = "";
-  newUrl: string = "";
-  newNotes: string = "";
-
-  newPasswordLength = 16;
-
-  newMasterPassword: string = "";
-  oldMasterPassword: string = "";
-  newMasterPasswordConfirm: string = "";
-
-  data: [
-    {
-      id: number;
-      fk_user_id: number;
-      name: string;
-      username: string;
-      password: string;
-      created_at: number;
-      updated_at: number;
-      url: string;
-      notes: string;
-    }
-  ] | undefined;
+  renderData = this.data;
 
   constructor(private _apiService: ApiService, protected _storageService: StorageService) {
   }
 
-  ngOnInit() {
-    if (sessionStorage.getItem('token') == null) {
-      window.location.href = "/login";
-    }
-
+  ngOnInit(): void {
     this._apiService.getData().pipe().subscribe(
-        data => {
-          this.data = data;
-          console.log(data);
-        },
-        error => {
-          console.log(error);
-        }
+      data => {
+        this.data = data;
+        this.renderData = data;
+        console.log(data);
+      },
+      error => {
+        console.log(error);
+      }
     );
   }
 
-  changeMasterPassword() {
-    if (this.newMasterPassword !== this.newMasterPasswordConfirm) {
-      return;
-    }
+  searchText: string = '';
 
-    this._storageService.newMasterPassword = this.newMasterPassword;
+  searchChange() {
+    this.renderData = this.data.filter(e => {
+      return this._storageService.decrypt_aes(e.name)
+        .toLowerCase()
+        .includes(
+          this.searchText.toLowerCase()
+            .trim()
+            .replace("   ", "  ")
+            .replace("  ", " ")
+        );
+    });
+  }
 
-    this.data?.forEach(e => {
-      let nName = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.name));
-      let nUsername = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.username));
-      let nPassword = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.password));
-      let nUrl = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.url));
-      let nNotes = this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.notes));
+  viewPassword(id: number) {
+    this.isCreating = false;
+    this.isViewing = true;
 
-      this._apiService.patchData(
-          e.id,
-          nName,
-          nUsername,
-          nPassword,
-          nUrl,
-          nNotes
-      ).pipe().subscribe({
-        next: data => {
-          if (e.id === this.data?.slice(-1)[0].id) {
-            this._apiService.getData().pipe().subscribe(
-                data => {
-                  this._apiService.patchUser(this._storageService.newMasterPassword).pipe().subscribe(
-                      data => {
-                        sessionStorage.removeItem('token');
-                        sessionStorage.removeItem('masterPassword');
-                        sessionStorage.removeItem('newMasterPassword');
-                        window.location.href = "/login";
-                      },
-                      error => {
-                        console.error(error);
-                      }
-                  );
+    let oldData = this.data.find(x => x.id == id) as any;
 
+    this._Id = oldData.id;
+    this._Name = this._storageService.decrypt_aes(oldData.name);
+    this._Username = this._storageService.decrypt_aes(oldData.username);
+    this._Password = this._storageService.decrypt_aes(oldData.password);
+    this._Url = this._storageService.decrypt_aes(oldData.url);
+    this._Notes = this._storageService.decrypt_aes(oldData.notes);
+  }
 
-                },
-                error => {
-                  console.error(error);
-                }
-            );
-          }
+  addPassword() {
+    this.isCreating = true;
+    this.isViewing = false;
+  }
+
+  savePassword() {
+    if (this.isCreating && !this.isViewing) {
+      this._apiService.dataPost(
+        this._storageService.encrypt_aes(this._Name),
+        this._storageService.encrypt_aes(this._Username),
+        this._storageService.encrypt_aes(this._Password),
+        this._storageService.encrypt_aes(this._Url),
+        this._storageService.encrypt_aes(this._Notes)
+      ).pipe().subscribe(
+        data => {
+          window.location.reload();
         },
-        error: error => {
-          console.error(error);
+        error => {
         }
-      });
-    })
-
-
-  }
-
-  cancelChangeMasterPassword() {
-    this.isChangingMasterPassword = false;
-    this.newMasterPassword = "";
-    this.oldMasterPassword = "";
-    this.newMasterPasswordConfirm = "";
-  }
-
-  onSubmit() {
-    let eName = this._storageService.encrypt_aes(this.newName);
-    let eUsername = this._storageService.encrypt_aes(this.newUsername);
-    let ePassword = this._storageService.encrypt_aes(this.newPassword);
-    let eUrl = this._storageService.encrypt_aes(this.newUrl);
-    let eNotes = this._storageService.encrypt_aes(this.newNotes);
-
-    if (this.isEditing) {
-      this._apiService.patchData(
-          this.editId,
-          eName,
-          eUsername,
-          ePassword,
-          eUrl,
-          eNotes
-      ).pipe().subscribe(
-          data => {
-            this._apiService.getData().pipe().subscribe(
-                data => {
-                  this.data = data;
-                  console.log(data);
-
-                  this.onCancel();
-                },
-                error => {
-                  console.log(error);
-                }
-            );
-          },
-          error => {
-            // console.log(error);
-          }
-      )
+      );
     }
-
-    if (this.isCreating) {
-      this._apiService.postData(
-          eName,
-          eUsername,
-          ePassword,
-          eUrl,
-          eNotes
+    if (this.isViewing && !this.isCreating) {
+      this._apiService.dataPatch(
+        this._Id,
+        this._storageService.encrypt_aes(this._Name),
+        this._storageService.encrypt_aes(this._Username),
+        this._storageService.encrypt_aes(this._Password),
+        this._storageService.encrypt_aes(this._Url),
+        this._storageService.encrypt_aes(this._Notes)
       ).pipe().subscribe(
-          data => {
-            // console.log(data);
-            this._apiService.getData().pipe().subscribe(
-                data => {
-                  this.data = data;
-                  console.log(data);
-
-                  this.onCancel();
-                },
-                error => {
-                  console.log(error);
-                }
-            );
-          },
-          error => {
-            // console.log(error);
-          }
+        data => {
+          window.location.reload();
+        },
+        error => {
+        }
       );
     }
   }
 
-  onCancel() {
-    this.isCreating = false;
-    this.isEditing = false;
-
-    this.newName = "";
-    this.newUsername = "";
-    this.newPassword = "";
-    this.newUrl = "";
-    this.newNotes = "";
-
-    this.isViewingPassword = false;
-
-
-    this.editId = -1;
+  deletePassword() {
+    this._apiService.dataDelete(this._Id).pipe().subscribe(
+      data => {
+        window.location.reload();
+      },
+      error => {
+      }
+    );
   }
 
-  editData(id: number) {
-    let oldData = this.data?.find(x => x.id === id) as any;
+  cancel() {
+    this.isCreating = false;
+    this.isViewing = false;
 
-    this.editId = id;
+    this._Id = -1;
+    this._Name = '';
+    this._Username = '';
+    this._Password = '';
+    this._Url = '';
+    this._Notes = '';
 
-    this.newName = this._storageService.decrypt_aes(oldData.name);
-    this.newUsername = this._storageService.decrypt_aes(oldData.username);
-    this.newPassword = this._storageService.decrypt_aes(oldData.password);
-    this.newUrl = this._storageService.decrypt_aes(oldData.url);
-    this.newNotes = this._storageService.decrypt_aes(oldData.notes);
-
-
-    this.isEditing = true;
+    this._OldPassword = '';
+    this._NewPassword = '';
+    this._NewPassword2 = '';
+    this.isChangingMasterPassword = false;
   }
 
   generatePassword() {
-    this.newPassword = this._storageService.generate_password(this.newPasswordLength);
+    this.isViewingPassword = true;
+    this._Password = this._storageService.generate_password(this._NewPasswordLength);
   }
+
+
+  // Master password stuff
+  _OldPassword: string = '';
+  _NewPassword: string = '';
+  _NewPassword2: string = '';
+  isChangingMasterPassword: boolean = false;
+
+  changeMasterPassword() {
+    if (this._NewPassword != this._NewPassword2 || this._NewPassword == '' || this._storageService.masterPassword != this._OldPassword) {
+      return;
+    }
+
+    this._storageService.newMasterPassword = this._NewPassword;
+
+    this.data?.forEach(e => {
+      this._apiService.dataPatch(
+        e.id,
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.name)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.username)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.password)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.url)),
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.notes))
+      ).pipe().subscribe(
+        data => {
+          if (e.id == this.data?.slice(-1)[0].id) {
+            this._apiService.userPatch(this._storageService.newMasterPassword).pipe().subscribe(
+              data => {
+                this._storageService.masterPassword = this._storageService.newMasterPassword;
+                this._storageService.newMasterPassword = '';
+                this.isChangingMasterPassword = false;
+                window.location.reload();
+              },
+              error => {
+                console.error(error);
+              }
+            );
+          }
+        },
+        error => {
+          console.error(error);
+        }
+      );
+    })
+  }
+
+  protected readonly event = event;
 }

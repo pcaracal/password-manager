@@ -1,6 +1,2 @@
-<!--<div>-->
-<!--  <app-login/>-->
-<!--  <app-register/>-->
-<!--</div>-->
-
-<router-outlet/>
+<app-login *ngIf="!isLoggedIn"/>
+<app-vault *ngIf="isLoggedIn"/>
