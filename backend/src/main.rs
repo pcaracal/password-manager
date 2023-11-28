@@ -5,7 +5,7 @@ extern crate rocket;
 
 use diesel::prelude::*;
 use backend::*;
-use backend::models::{Data, Folder, UpdateData, UpdateUser, User};
+use backend::models::{Data, Folder, UpdateData, UpdateFolder, UpdateUser, User};
 use rocket::serde::json::Json;
 use rocket::http::Status;
 use rocket::request::{self, Outcome, Request, FromRequest};
@@ -298,10 +298,8 @@ pub fn update_folder(token: Token, id: i32, folder: Json<Folder>) -> (Status, Op
     Err(_) => return (Status::NotFound, None),
   };
 
-  let updated_folder = Folder {
-    id: None,
-    fk_user_id: user_id,
-    name: folder.name.clone(),
+  let updated_folder = UpdateFolder {
+    name: Some(folder.name.clone()),
   };
 
   diesel::update(schema::folder::table)
