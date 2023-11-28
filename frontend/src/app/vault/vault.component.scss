@@ -2,7 +2,8 @@ h1 {
   margin-bottom: 0;
 }
 
-input, textarea {
+
+input, textarea, span {
   font-family: "JetBrains Mono NF", monospace;
   color: #f9e2af;
 }
@@ -22,8 +23,15 @@ input, textarea {
   }
 }
 
-.vault-list {
-  tr, td {
+.vault-list, .folders-list {
+  tr, td, li:not(:last-child) {
+    span {
+      font-family: "JetBrains Mono NF", monospace !important;
+      //font-size: 1.2rem;
+      color: #f9e2af;
+    }
+
+
     &:hover {
       cursor: pointer;
       background-color: #1f2d38;

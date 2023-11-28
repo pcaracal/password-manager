@@ -11,6 +11,45 @@
         [(ngModel)]="searchText"
         (ngModelChange)="searchChange()"
       >
+
+      <button class="outline" *ngIf="isFolderSelected"
+              (click)="cancelFolder()"><span>{{_FolderName}}</span></button>
+
+      <details role="list" *ngIf="!isFolderSelected">
+        <summary>Select Folder</summary>
+        <ul class="folders-list">
+          <li role="option" *ngFor="let item of folders" (click)="selectFolder(item.id)">
+            <div style="display: flex; align-items: center; justify-content: space-between">
+            <span>
+              {{item.name}}
+            </span>
+              <button class="outline" style="height: 60px; width: 60px; margin-bottom: 0"
+                      (click)="deleteFolder(item.id)">
+                <svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512">
+                  <path
+                    d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+                </svg>
+              </button>
+            </div>
+          </li>
+          <li>
+            <div
+              style="display: flex; flex-direction: row; justify-content: space-between"
+            >
+              <input
+                type="text"
+                placeholder="New Folder"
+                [(ngModel)]="newFolderName"
+                (keyup.enter)="saveFolder()"
+              >
+              <button (click)="saveFolder()" class="outline" style="width: 20%; margin-left: 10px;">Save</button>
+              <button (click)="cancelFolder()" class="outline secondary" style="width: 20%; margin-left: 10px">
+                Cancel
+              </button>
+            </div>
+          </li>
+        </ul>
+      </details>
     </header>
     <body>
     <table>
@@ -186,6 +225,14 @@
         autocomplete="off"
         style="min-height: 60px; resize: vertical"
       ></textarea>
+
+      <label for="folder">Folder</label>
+      <select id="folder" name="folder">
+        <option value="" (click)="_FolderId = -1">None</option>
+        <option [selected]="item.id == _FolderId" *ngFor="let item of folders" [value]="item.id"
+                (click)="_FolderId = item.id">{{item.name}}</option>
+      </select>
+
       </body>
 
       <footer>
@@ -306,6 +353,13 @@
         autocomplete="off"
         style="min-height: 60px; resize: vertical"
       ></textarea>
+
+      <label for="folder1">Folder</label>
+      <select id="folder1" name="folder">
+        <option value="" (click)="_FolderId = -1">None</option>
+        <option [selected]="item.id == _FolderId" *ngFor="let item of folders" [value]="item.id"
+                (click)="_FolderId = item.id">{{item.name}}</option>
+      </select>
       </body>
 
       <footer>
