@@ -5,11 +5,17 @@
         <h1>Vault</h1>
         <button (click)="isChangingMasterPassword = true" class="outline secondary">Change Master Password</button>
       </div>
+      <input
+        type="search"
+        placeholder="Search"
+        [(ngModel)]="searchText"
+        (ngModelChange)="searchChange()"
+      >
     </header>
     <body>
     <table>
       <tbody>
-      <tr *ngFor="let item of data" class="vault-list" (click)="viewPassword(item.id)">
+      <tr *ngFor="let item of renderData" class="vault-list" (click)="viewPassword(item.id)">
         <td>
           {{_storageService.decrypt_aes(item.name)}}
         </td>
