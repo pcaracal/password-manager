@@ -3,11 +3,12 @@ import {CommonModule} from '@angular/common';
 import {StorageService} from "../storage.service";
 import {ApiService} from "../api.service";
 import {FormsModule} from "@angular/forms";
+import {PasswordStrengthMeterComponent} from "angular-password-strength-meter";
 
 @Component({
   selector: 'app-vault',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PasswordStrengthMeterComponent],
   templateUrl: './vault.component.html',
   styleUrl: './vault.component.scss'
 })
