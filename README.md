@@ -24,10 +24,9 @@ It has only been tested on Linux, but should also work on Windows and MacOS.
 2. cd into the repository, then into the backend directory
 3. Run `echo "DATABASE_URL=db.sqlite3" >> .env`
 4. Create some random data for the JWT Secret and run `echo "JWT_SECRET=<secret>" >> .env`
-5. Run `touch db.sqlite3`
-6. Run `cargo install diesel_cli --no-default-features --features sqlite`
-7. Run `diesel setup`
-8. Run `diesel migration run`
+5. Run `cargo install diesel_cli --no-default-features --features sqlite`
+6. Run `diesel setup`
+7. Run `diesel migration run`
 
 #### Frontend
 
