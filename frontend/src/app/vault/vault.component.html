@@ -127,33 +127,33 @@
 
     <form (ngSubmit)="savePassword()">
       <body>
-      <label for="cname">Name</label>
+      <label for="cname1">Name</label>
       <input
         type="text"
-        id="cname"
+        id="cname1"
         name="name"
         placeholder="Name"
         [(ngModel)]="_Name"
         required
         autocomplete="off"
       >
-      <label for="cusername">Username</label>
+      <label for="cusername1">Username</label>
       <input
         type="text"
-        id="cusername"
+        id="cusername1"
         name="username"
         placeholder="Username"
         [(ngModel)]="_Username"
         required
         autocomplete="off"
       >
-      <label for="cpassword">Password</label>
+      <label for="cpassword1">Password</label>
 
       <!--Password thing-->
       <div class="password-buttons">
         <input
           type="text"
-          id="cpassword"
+          id="cpassword1"
           name="password"
           placeholder="Password"
           [(ngModel)]="_Password"
@@ -164,7 +164,7 @@
 
         <input
           type="password"
-          id="cpassword_hidden"
+          id="cpassword_hidden1"
           name="password"
           placeholder="****"
           required
@@ -193,10 +193,10 @@
           </svg>
         </button>
       </div>
-      <label for="pwlen">Length: {{_NewPasswordLength}}</label>
+      <label for="pwlen1">Length: {{_NewPasswordLength}}</label>
       <input
         type="range"
-        id="pwlen"
+        id="pwlen1"
         name="pwlen"
         min="16"
         max="256"
@@ -206,19 +206,20 @@
         autocomplete="off"
       >
 
-      <password-strength-meter [password]="_Password" enableFeedback/>
-      <label for="curl">Url</label>
+      <password-strength-meter [password]="_Password" enableFeedback="true"/>
+      <label for="curl1">Url</label>
       <input
         type="text"
-        id="curl"
+        id="curl1"
         name="url"
         placeholder="Url"
         [(ngModel)]="_Url"
         required
         autocomplete="off"
       >
+      <label for="cnotes1">Notes</label>
       <textarea
-        id="cnotes"
+        id="cnotes1"
         name="notes"
         placeholder="Notes"
         [(ngModel)]="_Notes"
@@ -334,7 +335,7 @@
         autocomplete="off"
       >
 
-      <password-strength-meter [password]="_Password" enableFeedback/>
+      <password-strength-meter [password]="_Password" enableFeedback="true"/>
       <label for="curl">Url</label>
       <input
         type="text"
@@ -345,6 +346,8 @@
         required
         autocomplete="off"
       >
+      <label
+        for="cnotes">Notes</label>
       <textarea
         id="cnotes"
         name="notes"
