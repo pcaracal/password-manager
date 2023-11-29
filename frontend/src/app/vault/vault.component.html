@@ -18,9 +18,10 @@
       <details role="list" *ngIf="!isFolderSelected">
         <summary>Select Folder</summary>
         <ul class="folders-list">
-          <li role="option" *ngFor="let item of folders" (click)="selectFolder(item.id)">
+          <li role="option" *ngFor="let item of folders" style="cursor: default">
             <div style="display: flex; align-items: center; justify-content: space-between">
-            <span>
+            <span (click)="selectFolder(item.id)"
+                  style="cursor: pointer; width: 90%; padding: 20px; margin-right: 10px">
               {{item.name}}
             </span>
               <button class="outline" style="height: 60px; width: 60px; margin-bottom: 0"
@@ -238,8 +239,8 @@
       <footer>
         <div class="grid">
           <button type="submit">Save</button>
-          <button (click)="deletePassword()" class="outline">Delete</button>
-          <button (click)="cancel()" class="outline secondary">Cancel</button>
+          <button type="button" (click)="deletePassword()" class="outline">Delete</button>
+          <button type="button" (click)="cancel()" class="outline secondary">Cancel</button>
         </div>
       </footer>
     </form>

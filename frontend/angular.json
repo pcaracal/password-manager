@@ -31,7 +31,8 @@
             ],
             "styles": [
               "src/styles.scss",
-              "src/scss/pico.scss"
+              "src/scss/pico.scss",
+              "node_modules/ngx-toastr/toastr.css"
             ],
             "scripts": []
           },

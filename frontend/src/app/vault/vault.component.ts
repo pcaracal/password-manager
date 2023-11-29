@@ -4,6 +4,7 @@ import {StorageService} from "../storage.service";
 import {ApiService} from "../api.service";
 import {FormsModule} from "@angular/forms";
 import {PasswordStrengthMeterComponent} from "angular-password-strength-meter";
+import {ToastrService} from "ngx-toastr";
 
 @Component({
   selector: 'app-vault',
@@ -44,9 +45,12 @@ export class VaultComponent implements OnInit {
   deleteFolder(id: number) {
     this._apiService.deleteFolder(id).pipe().subscribe(
       data => {
-        window.location.reload();
+        this.ngOnInit();
+        this.toastr.success('Folder deleted', 'Success');
+        // window.location.reload();
       },
       error => {
+        this.toastr.error('Folder not deleted', 'Error');
       }
     );
   }
@@ -54,9 +58,13 @@ export class VaultComponent implements OnInit {
   saveFolder() {
     this._apiService.folderPost(this.newFolderName).pipe().subscribe(
       data => {
-        window.location.reload();
+        this.ngOnInit();
+        this.cancelFolder();
+        this.toastr.success('Folder created', 'Success');
+
       },
       error => {
+        this.toastr.error('Folder not created', 'Error');
       }
     );
   }
@@ -86,7 +94,7 @@ export class VaultComponent implements OnInit {
 
   renderData = this.data;
 
-  constructor(private _apiService: ApiService, protected _storageService: StorageService) {
+  constructor(private _apiService: ApiService, protected _storageService: StorageService, private toastr: ToastrService) {
   }
 
   ngOnInit(): void {
@@ -169,9 +177,13 @@ export class VaultComponent implements OnInit {
         this._FolderId
       ).pipe().subscribe(
         data => {
-          window.location.reload();
+          this.ngOnInit();
+          this.toastr.success('Password created', 'Success');
+          this.cancel();
+          // window.location.reload();
         },
         error => {
+          this.toastr.error('Password not created', 'Error');
         }
       );
     }
@@ -186,9 +198,13 @@ export class VaultComponent implements OnInit {
         this._FolderId
       ).pipe().subscribe(
         data => {
-          window.location.reload();
+          this.ngOnInit();
+          this.toastr.success('Password updated', 'Success');
+          // window.location.reload();
+          this.cancel();
         },
         error => {
+          this.toastr.error('Password not updated', 'Error');
         }
       );
     }
@@ -197,9 +213,13 @@ export class VaultComponent implements OnInit {
   deletePassword() {
     this._apiService.dataDelete(this._Id).pipe().subscribe(
       data => {
-        window.location.reload();
+        this.ngOnInit();
+        this.toastr.success('Password deleted', 'Success');
+        this.cancel();
+        // window.location.reload();
       },
       error => {
+        this.toastr.error('Password not deleted', 'Error');
       }
     );
   }
@@ -219,6 +239,16 @@ export class VaultComponent implements OnInit {
     this._NewPassword = '';
     this._NewPassword2 = '';
     this.isChangingMasterPassword = false;
+
+    this._FolderId = -1;
+    this._FolderName = '';
+    this.isCreatingFolder = false;
+    this.newFolderName = '';
+    this.isFolderSelected = false;
+
+    this.isViewingPassword = false;
+
+    this._NewPasswordLength = 16;
   }
 
   generatePassword() {
@@ -257,9 +287,14 @@ export class VaultComponent implements OnInit {
                 this._storageService.masterPassword = this._storageService.newMasterPassword;
                 this._storageService.newMasterPassword = '';
                 this.isChangingMasterPassword = false;
-                window.location.reload();
+                this.ngOnInit();
+                // window.location.reload();
+                this.toastr.success('Master password changed', 'Success');
+                this.cancel();
               },
               error => {
+                this.toastr.error('Master password not changed', 'Error');
+                this.toastr.error('Your passwords are gone forever.', 'Error');
                 console.error(error);
               }
             );
@@ -271,6 +306,4 @@ export class VaultComponent implements OnInit {
       );
     })
   }
-
-  protected readonly event = event;
 }
