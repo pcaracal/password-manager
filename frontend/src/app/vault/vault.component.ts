@@ -23,6 +23,50 @@ export class VaultComponent implements OnInit {
   _Password: string = '';
   _Url: string = '';
   _Notes: string = '';
+  _FolderId: number = -1;
+
+  folders: { id: number, name: string }[] = [];
+
+  _FolderName: string = '';
+  isCreatingFolder: boolean = false;
+  newFolderName: string = '';
+  isFolderSelected: boolean = false;
+
+  selectFolder(id: number) {
+    this._FolderId = id;
+    this.isFolderSelected = true;
+    this._FolderName = this.folders.find(x => x.id == id)?.name as string;
+    this.renderData = this.data.filter(e => {
+      return e.fk_folder_id == id;
+    });
+  }
+
+  deleteFolder(id: number) {
+    this._apiService.deleteFolder(id).pipe().subscribe(
+      data => {
+        window.location.reload();
+      },
+      error => {
+      }
+    );
+  }
+
+  saveFolder() {
+    this._apiService.folderPost(this.newFolderName).pipe().subscribe(
+      data => {
+        window.location.reload();
+      },
+      error => {
+      }
+    );
+  }
+
+  cancelFolder() {
+    this.isCreatingFolder = false;
+    this.newFolderName = '';
+    this.isFolderSelected = false;
+    this.renderData = this.data;
+  }
 
   _NewPasswordLength: number = 16;
   isViewingPassword: boolean = false;
@@ -37,6 +81,7 @@ export class VaultComponent implements OnInit {
     url: string,
     created_at: number,
     updated_at: number
+    fk_folder_id: number
   }[] = [];
 
   renderData = this.data;
@@ -49,7 +94,17 @@ export class VaultComponent implements OnInit {
       data => {
         this.data = data;
         this.renderData = data;
-        console.log(data);
+        console.log("Data:", data);
+      },
+      error => {
+        console.log(error);
+      }
+    );
+
+    this._apiService.getFolders().pipe().subscribe(
+      data => {
+        this.folders = data;
+        console.log("Folders:", data);
       },
       error => {
         console.log(error);
@@ -61,6 +116,17 @@ export class VaultComponent implements OnInit {
 
   searchChange() {
     this.renderData = this.data.filter(e => {
+      if (this.isFolderSelected) {
+        return this._storageService.decrypt_aes(e.name)
+          .toLowerCase()
+          .includes(
+            this.searchText.toLowerCase()
+              .trim()
+              .replace("   ", "  ")
+              .replace("  ", " ")
+          ) && e.fk_folder_id == this._FolderId;
+      }
+
       return this._storageService.decrypt_aes(e.name)
         .toLowerCase()
         .includes(
@@ -84,6 +150,7 @@ export class VaultComponent implements OnInit {
     this._Password = this._storageService.decrypt_aes(oldData.password);
     this._Url = this._storageService.decrypt_aes(oldData.url);
     this._Notes = this._storageService.decrypt_aes(oldData.notes);
+    this._FolderId = oldData.fk_folder_id;
   }
 
   addPassword() {
@@ -98,7 +165,8 @@ export class VaultComponent implements OnInit {
         this._storageService.encrypt_aes(this._Username),
         this._storageService.encrypt_aes(this._Password),
         this._storageService.encrypt_aes(this._Url),
-        this._storageService.encrypt_aes(this._Notes)
+        this._storageService.encrypt_aes(this._Notes),
+        this._FolderId
       ).pipe().subscribe(
         data => {
           window.location.reload();
@@ -114,7 +182,8 @@ export class VaultComponent implements OnInit {
         this._storageService.encrypt_aes(this._Username),
         this._storageService.encrypt_aes(this._Password),
         this._storageService.encrypt_aes(this._Url),
-        this._storageService.encrypt_aes(this._Notes)
+        this._storageService.encrypt_aes(this._Notes),
+        this._FolderId
       ).pipe().subscribe(
         data => {
           window.location.reload();
@@ -178,7 +247,8 @@ export class VaultComponent implements OnInit {
         this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.username)),
         this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.password)),
         this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.url)),
-        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.notes))
+        this._storageService.encrypt_aes_new(this._storageService.decrypt_aes(e.notes)),
+        e.fk_folder_id
       ).pipe().subscribe(
         data => {
           if (e.id == this.data?.slice(-1)[0].id) {

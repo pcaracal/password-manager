@@ -5,7 +5,7 @@ extern crate rocket;
 
 use diesel::prelude::*;
 use backend::*;
-use backend::models::{Data, UpdateData, UpdateUser, User};
+use backend::models::{Data, Folder, UpdateData, UpdateFolder, UpdateUser, User};
 use rocket::serde::json::Json;
 use rocket::http::Status;
 use rocket::request::{self, Outcome, Request, FromRequest};
@@ -104,6 +104,7 @@ fn create_data(token: Token, data: Json<Data>) -> (Status, Option<Json<Data>>) {
         updated_at: Option::from(chrono::Utc::now().timestamp() * 1000),
         url: data.url.clone(),
         notes: data.notes.clone(),
+        fk_folder_id: data.fk_folder_id.clone(),
     };
     println!("{:?}", chrono::Utc::now().timestamp());
 
@@ -147,7 +148,6 @@ pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> (Status, Op
         Err(_) => return (Status::NotFound, None),
     };
 
-
     let updated_data = UpdateData {
         name: data.name.clone(),
         username: data.username.clone(),
@@ -155,6 +155,7 @@ pub fn update_data(token: Token, id: i32, data: Json<UpdateData>) -> (Status, Op
         updated_at: Option::from(chrono::Utc::now().timestamp() * 1000),
         url: data.url.clone(),
         notes: data.notes.clone(),
+        fk_folder_id: data.fk_folder_id.clone(),
     };
 
     diesel::update(schema::data::table)
@@ -246,6 +247,123 @@ pub fn delete_data(token: Token, id: i32) -> Status {
     Status::Ok
 }
 
+#[post("/folder", data = "<folder>")]
+fn create_folder(token: Token, folder: Json<Folder>) -> (Status, Option<Json<Folder>>) {
+    let mut connection = establish_connection();
+    let user_id = auth::decode_token(token.0);
+
+    let new_folder = Folder {
+        id: None,
+        fk_user_id: user_id,
+        name: folder.name.clone(),
+    };
+
+    diesel::insert_into(schema::folder::table)
+        .values(&new_folder)
+        .execute(&mut connection)
+        .expect("Error saving new folder");
+
+    let results = schema::folder::table
+        .order(schema::folder::id.desc())
+        .first::<Folder>(&mut connection)
+        .expect("Error loading folder");
+
+    (Status::Ok, Option::from(Json(results)))
+}
+
+#[get("/folder")]
+pub fn get_folder(token: Token) -> (Status, Option<Json<Vec<Folder>>>) {
+    let mut connection = establish_connection();
+    let user_id = auth::decode_token(token.0);
+
+    let results = schema::folder::table
+        .filter(schema::folder::fk_user_id.eq(user_id))
+        .load::<Folder>(&mut connection)
+        .expect("Error loading folder");
+
+    (Status::Ok, Option::from(Json(results)))
+}
+
+#[patch("/folder/<id>", data = "<folder>")]
+pub fn update_folder(token: Token, id: i32, folder: Json<Folder>) -> (Status, Option<Json<Folder>>) {
+    let mut connection = establish_connection();
+    let user_id = auth::decode_token(token.0);
+
+    match schema::folder::table
+        .filter(schema::folder::id.eq(id))
+        .filter(schema::folder::fk_user_id.eq(user_id))
+        .first::<Folder>(&mut connection) {
+        Ok(_) => (),
+        Err(_) => return (Status::NotFound, None),
+    };
+
+    let updated_folder = UpdateFolder {
+        name: Some(folder.name.clone()),
+    };
+
+    diesel::update(schema::folder::table)
+        .filter(schema::folder::id.eq(id))
+        .filter(schema::folder::fk_user_id.eq(user_id))
+        .set(&updated_folder)
+        .execute(&mut connection)
+        .expect("Error updating folder");
+
+    let results = schema::folder::table
+        .filter(schema::folder::id.eq(id))
+        .filter(schema::folder::fk_user_id.eq(user_id))
+        .first::<Folder>(&mut connection)
+        .expect("Error loading folder");
+
+    (Status::Ok, Option::from(Json(results)))
+}
+
+#[delete("/folder/<id>")]
+pub fn delete_folder(token: Token, id: i32) -> Status {
+    let mut connection = establish_connection();
+    let user_id = auth::decode_token(token.0);
+
+    match schema::folder::table
+        .filter(schema::folder::id.eq(id))
+        .filter(schema::folder::fk_user_id.eq(user_id))
+        .first::<Folder>(&mut connection) {
+        Ok(_) => (),
+        Err(_) => return Status::NotFound,
+    };
+
+    let data = schema::data::table
+        .filter(schema::data::fk_folder_id.eq(id))
+        .filter(schema::data::fk_user_id.eq(user_id))
+        .load::<Data>(&mut connection)
+        .expect("Error loading data");
+
+    for d in data {
+        let updated_data = UpdateData {
+            name: Some(d.name.clone()),
+            username: Some(d.username.clone()),
+            password: Some(d.password.clone()),
+            updated_at: Option::from(chrono::Utc::now().timestamp() * 1000),
+            url: d.url.clone(),
+            notes: d.notes.clone(),
+            fk_folder_id: Some(-1),
+        };
+
+        diesel::update(schema::data::table)
+            .filter(schema::data::id.eq(d.id))
+            .filter(schema::data::fk_user_id.eq(user_id))
+            .set(&updated_data)
+            .execute(&mut connection)
+            .expect("Error updating data");
+    }
+
+    diesel::delete(schema::folder::table)
+        .filter(schema::folder::id.eq(id))
+        .filter(schema::folder::fk_user_id.eq(user_id))
+        .execute(&mut connection)
+        .expect("Error deleting folder");
+
+    Status::Ok
+}
+
 #[launch]
 fn rocket() -> _ {
     let cors = rocket_cors::CorsOptions::default()
@@ -263,4 +381,8 @@ fn rocket() -> _ {
         .mount("/", routes![update_login])
         .mount("/", routes![check_login])
         .mount("/", routes![delete_data])
+        .mount("/", routes![create_folder])
+        .mount("/", routes![get_folder])
+        .mount("/", routes![update_folder])
+        .mount("/", routes![delete_folder])
 }
