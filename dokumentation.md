@@ -39,3 +39,9 @@
 - Generate great passwords
 - Show password strength
 - Show suggestions on password improvement if it's horrible
+
+## 29.11.2023
+
+- Toasts for success and error messages
+- Fixed some bugs
+- Owasp top 10 review

@@ -29,21 +29,47 @@ For login management, the backend uses JWTs and the login passwords are hashed u
 
 ## Owasp Top 10 Risks
 
-- Broken Access Control: The backend uses JWTs for authentication and authorization.
-  The JWTs are signed using a secret key, which is only known to the backend.
-  The JWTs are also short-lived, so even if an attacker manages to steal a JWT,
-  it will be useless after a short time.
+- Broken Access Control:
+    - The backend uses JWTs for authentication and authorization.
+    - The JWTs are signed using a secret key, which is only known to the backend.
+    - The JWTs are also short-lived, so even if an attacker manages to steal a JWT,
+      it will be useless after a short time.
 
-- Injection: The backend uses the Diesel ORM, which is safe against SQL injection.
+- Cryptographic Failures:
+    - The AES-256-CBC algorithm is considered secure and by salting
+      the same data will always be encrypted to a different ciphertext.
+    - The Argon2id algorithm is also considered secure.
 
-- Cross-Site Scripting (XSS): The frontend uses Angular, which is safe against XSS.
+- Injection:
+    - The backend uses the Diesel ORM, which is safe against SQL injection.
 
-- Cryptographic Failures: The AES-256-CBC algorithm is considered secure and by salting
-  the same data will always be encrypted to a different ciphertext.
-  The Argon2id algorithm is also considered secure.
+- Cross-Site Scripting (XSS):
+    - The frontend uses Angular, which is safe against XSS.
 
-- Insecure Design: The design of the application is simple.
-  The frontend does the encryption and decryption of the passwords.
-  The backend only stores the encrypted passwords and has no way of decrypting them.
+- Insecure Design:
+    - The design of the application is simple.
+    - The frontend does the encryption and decryption of the passwords.
+    - The backend only stores the encrypted passwords and has no way of decrypting them.
 
-- Identification and Authentication failures: See Broken Access Control.
+- Security Misconfiguration:
+    - See Insecure Design
+    - See Cryptographic Failures
+    - See Broken Access Control.
+
+- Vulnerable and Outdated Components:
+    - The frontend uses Angular 17, which is the latest version.
+    - The backend uses Rocket and Diesel, which are also the latest versions.
+
+- Identification and Authentication failures:
+    - See Broken Access Control.
+
+- Software and Data Integrity Failures:
+    - Assuming the NPM packages are not compromised, the frontend is safe against this.
+    - Same for the Backend with Cargo.
+
+- Security Logging and Monitoring Failures:
+    - The backend logs all requests and errors.
+
+- Server-Side Request Forgery (SSRF):
+    - The backend does not make any requests to external servers.
+    - The frontend does not make any requests to external servers.
